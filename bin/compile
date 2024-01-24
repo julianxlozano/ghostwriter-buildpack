@@ -1,0 +1,49 @@
+#!/bin/bash
+
+BUILD_DIR=${1:-}
+SECOND_DIR=${2:-}
+ENV_DIR=${3:-}
+
+echo "BUILD_DIR=$BUILD_DIR"
+echo "SECOND_DIR=$SECOND_DIR"
+echo "ENV_DIR=$ENV_DIR"
+VENDOR_DIR="vendor"
+
+if [ ! -f "$BUILD_DIR/.profile.d/ffmpeg.sh" ]; then
+  echo "downloading and installing ffmpeg ..."
+  mkdir -p "$BUILD_DIR/$VENDOR_DIR/ffmpeg"
+  cd "$BUILD_DIR/$VENDOR_DIR/ffmpeg"
+  curl "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz" -L --silent --fail --retry 5 --retry-max-time 15 -o ./ffmpeg.tar.xz
+  tar xJf ffmpeg.tar.xz --strip-components=1 -C .
+  rm ffmpeg.tar.xz
+  ls -la
+  PROFILE_PATH="$BUILD_DIR/.profile.d/ffmpeg.sh"
+  mkdir -p $(dirname $PROFILE_PATH) || true
+  echo "export PATH=\"\$PATH:$BUILD_DIR/$VENDOR_DIR/ffmpeg:/app/$VENDOR_DIR/ffmpeg\"" >> $PROFILE_PATH
+  cat $PROFILE_PATH
+fi
+if [ ! -f "$BUILD_DIR/.profile.d/elastique_tune.sh" ]; then
+  echo "downloading and elastique tune wrapper ..."
+  mkdir -p "$BUILD_DIR/$VENDOR_DIR/elastique_tune"
+  cd "$BUILD_DIR/$VENDOR_DIR/elastique_tune"
+  cat <<EOF >>reget_elastique_tune.sh
+curl "https://www.chriswirz.com/elastique_tune.tar.gz" -L --silent --fail --retry 5 --retry-max-time 15 -o ./elastique_tune.tar.gz
+tar -xf elastique_tune.tar.gz -C .
+rm elastique_tune.tar.gz
+ls -la
+EOF
+  chmod +x reget_elastique_tune.sh || true
+  ./reget_elastique_tune.sh
+  PROFILE_PATH="$BUILD_DIR/.profile.d/elastique_tune.sh"
+  mkdir -p $(dirname $PROFILE_PATH) || true
+  echo "export PATH=\"\$PATH:$BUILD_DIR/$VENDOR_DIR/elastique_tune/usr/bin:/app/$VENDOR_DIR/elastique_tune/usr/bin\"" >> $PROFILE_PATH
+  cat $PROFILE_PATH
+fi
+
+if  [ command -v gem &> /dev/null ]; then
+  echo "getting the ElastiqueTuneWrapper gem"
+  curl "https://www.chriswirz.com/ElastiqueTuneWrapper-0.1.gem" -L --silent --fail --retry 5 --retry-max-time 15 -o ./ElastiqueTuneWrapper-0.1.gem
+  gem install ElastiqueTuneWrapper-0.1.gem
+fi
+
+

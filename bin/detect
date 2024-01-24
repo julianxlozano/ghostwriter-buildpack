@@ -1,3 +1,5 @@
 #!/bin/bash
 
+echo "Running buildpack https://github.com/julianxlozano/ghostwriter-buildpack"
+
 exit 0
